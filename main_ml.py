@@ -56,7 +56,7 @@ class Configuration:
             self.spark.sparkContext.addPyFile(python_file)
 
               
-def read_sql_from_file(file_path:str, mcc_mnc:str) -> str: 
+def read_sql_from_file(file_path:str, mcc:int) -> str: 
     """
     Read or import SQL Query from a text file.
 
@@ -71,15 +71,15 @@ def read_sql_from_file(file_path:str, mcc_mnc:str) -> str:
     if not isinstance(file_path, str):
         raise TypeError(f'argument: file_path supposed to be string format, not {type(file_path)}')
     
-    if not isinstance(mcc_mnc, str):
-        raise TypeError(f'Argument: mcc_mnc code should be string format, not {type(mcc_mnc)}')
+    if not isinstance(mcc, int):
+        raise TypeError(f'Argument: mcc code should be integer format, not {type(mcc)}')
     
     try:
         with open(file_path, 'r') as file:
             sql_query = file.read()
             
             try:
-                return sql_query.format(mcc_mnc, mcc_mnc)
+                return sql_query.format(mcc, mcc)
             except Exception as e:
                 print('Error raised when putting mcc to \{\} in query text file')
                 print(f'Error: {e}')
