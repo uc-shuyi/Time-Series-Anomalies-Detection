@@ -43,8 +43,6 @@ class Configuration:
         
         self.two_sigma = 1.96
         
-        self.three_sigma = 2.58
-        
         self.must_have_features = ['dt', 'tx_hour', 'count', 'mcc_mnc', 'rat_type', 'par_year', 'par_month', 'par_date', 'par_bound_type']
         
         # self.target_countries = [505,528,456,460,454,404,510,440,530,515,420,525,450,466,520,286,424,234,310,452]
@@ -164,8 +162,6 @@ def execute_detection(spark_session: SparkSession, data: pd.DataFrame, configura
     if not isinstance(data, pd.DataFrame):
         raise TypeError(f'Argument: data should be pd.DataFrame, not {type(data)}')
     
-    # if not hasattr(configuration, '') or not hasattr(configuration, '') 
-     
     # convert to datetime
     data['dt'] = pd.to_datetime(data['dt'])
     
@@ -305,7 +301,7 @@ def execute_detection(spark_session: SparkSession, data: pd.DataFrame, configura
     insert_into_hdfs(spark_session, data_to_ingest)
          
       
-def start_action(spark_session, data_source, configuration):
+def start_action(spark_session: SparkSession, data_source, configuration):
     """
     Preprocess the data and group the into subset based on mcc, mnc, rat type and bound type.
 
@@ -314,7 +310,7 @@ def start_action(spark_session, data_source, configuration):
         data_source (dataframe): data extracted from SQL query
         configuration (object): user fdefined configuration or settings
     """
-    
+
     mcc_list = data_source.get_mcc_list()
     bound_list = data_source.get_bound_list()
     rat_list = data_source.get_rat_list() 
@@ -322,7 +318,6 @@ def start_action(spark_session, data_source, configuration):
     for mcc_mnc in tqdm(mcc_list): 
         for bound_type in bound_list:
             for rat_type in rat_list:   
-                # get data filtered by mcc_mnc, bound_type, rat_type
                 data = data_source.get_data(mcc_mnc, bound_type, rat_type) 
                 
                 if data.empty:
@@ -330,9 +325,6 @@ def start_action(spark_session, data_source, configuration):
                     continue
                 
                 print(f"===== Now running - MCC-MNC: {mcc_mnc}, Bound Type: {bound_type}, RAT Type: {rat_type}") 
-                  
-                # data['success_rate_detrended'] = make_stationary(data['success_rate']) 
-                # data['total_count_detrended'] = make_stationary(data['total_count'])
                  
                 execute_detection(spark_session, data, configuration)
  
@@ -345,7 +337,10 @@ if __name__ == "__main__":
     import dataset
     import model
     import util
-     
+    
+    if not hasattr(configuration, 'window_size') or not hasattr(configuration, 'target_countries'):
+        raise ValueError('Window size did not configured in global configuration')
+    
     # import settings
     spark_session = configuration.spark
     sql_files = configuration.sql_files
